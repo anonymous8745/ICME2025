@@ -1,0 +1,639 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title>Audio-samples</title>
+      <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+      <link rel="stylesheet"
+href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+      <!-- <link rel="shortcut icon" href="../../images/taco.png"> -->
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      extensions: ["tex2jax.js"],
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], scale: 77},
+      tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+      TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "50%" } } },
+      messageStyle: "none"
+    });
+    </script>    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+      <script>
+         function play(path) {{
+           var player = document.getElementById('player');
+           player.src = path;
+           player.play();
+         }}
+         function isInternetExplorer() {
+            ua = navigator.userAgent;
+            /* MSIE used to detect old browsers and Trident used to newer ones*/
+            return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+          }
+
+          /* Define the Animation class */
+          function Animation(frames, img_id, slider_id, interval, loop_select_id){
+            this.img_id = img_id;
+            this.slider_id = slider_id;
+            this.loop_select_id = loop_select_id;
+            this.interval = interval;
+            this.current_frame = 0;
+            this.direction = 0;
+            this.timer = null;
+            this.frames = new Array(frames.length);
+
+            for (var i=0; i<frames.length; i++)
+            {
+             this.frames[i] = new Image();
+             this.frames[i].src = frames[i];
+            }
+            var slider = document.getElementById(this.slider_id);
+            slider.max = this.frames.length - 1;
+            if (isInternetExplorer()) {
+                // switch from oninput to onchange because IE <= 11 does not conform
+                // with W3C specification. It ignores oninput and onchange behaves
+                // like oninput. In contrast, Mircosoft Edge behaves correctly.
+                slider.setAttribute('onchange', slider.getAttribute('oninput'));
+                slider.setAttribute('oninput', null);
+            }
+            this.set_frame(this.current_frame);
+          }
+
+          Animation.prototype.get_loop_state = function(){
+            return 0;
+          }
+
+          Animation.prototype.set_frame = function(frame){
+            this.current_frame = frame;
+            document.getElementById(this.img_id).src =
+                    this.frames[this.current_frame].src;
+            document.getElementById(this.slider_id).value = this.current_frame;
+          }
+
+          Animation.prototype.next_frame = function()
+          {
+            this.set_frame(Math.min(this.frames.length - 1, this.current_frame + 1));
+          }
+
+          Animation.prototype.previous_frame = function()
+          {
+            this.set_frame(Math.max(0, this.current_frame - 1));
+          }
+
+          Animation.prototype.first_frame = function()
+          {
+            this.set_frame(0);
+          }
+
+          Animation.prototype.last_frame = function()
+          {
+            this.set_frame(this.frames.length - 1);
+          }
+
+          Animation.prototype.slower = function()
+          {
+            this.interval /= 0.7;
+            if(this.direction > 0){this.play_animation();}
+            else if(this.direction < 0){this.reverse_animation();}
+          }
+
+          Animation.prototype.faster = function()
+          {
+            this.interval *= 0.7;
+            if(this.direction > 0){this.play_animation();}
+            else if(this.direction < 0){this.reverse_animation();}
+          }
+
+          Animation.prototype.anim_step_forward = function()
+          {
+            this.current_frame += 1;
+            if(this.current_frame < this.frames.length){
+              this.set_frame(this.current_frame);
+            }else{
+              var loop_state = this.get_loop_state();
+              if(loop_state == "loop"){
+                this.first_frame();
+              }else if(loop_state == "reflect"){
+                this.last_frame();
+                this.reverse_animation();
+              }else{
+                this.pause_animation();
+                this.last_frame();
+              }
+            }
+          }
+
+          Animation.prototype.anim_step_reverse = function()
+          {
+            this.current_frame -= 1;
+            if(this.current_frame >= 0){
+              this.set_frame(this.current_frame);
+            }else{
+              var loop_state = this.get_loop_state();
+              if(loop_state == "loop"){
+                this.last_frame();
+              }else if(loop_state == "reflect"){
+                this.first_frame();
+                this.play_animation();
+              }else{
+                this.pause_animation();
+                this.first_frame();
+              }
+            }
+          }
+
+          Animation.prototype.pause_animation = function()
+          {
+            this.direction = 0;
+            if (this.timer){
+              clearInterval(this.timer);
+              this.timer = null;
+            }
+          }
+
+          Animation.prototype.play_animation = function()
+          {
+            this.pause_animation();
+            this.direction = 1;
+            var t = this;
+            if (!this.timer) this.timer = setInterval(function() {
+                t.anim_step_forward();
+            }, this.interval);
+          }
+
+          Animation.prototype.reverse_animation = function()
+          {
+            this.pause_animation();
+            this.direction = -1;
+            var t = this;
+            if (!this.timer) this.timer = setInterval(function() {
+                t.anim_step_reverse();
+            }, this.interval);
+          }
+      </script>
+      <style>
+        body{
+          width: 1000px;
+          margin: 10 auto;
+        }
+        .animation {
+            display: inline-block;
+            text-align: center;
+        }
+        input[type=range].anim-slider {
+            width: 374px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .anim-buttons {
+            margin: 8px 0px;
+        }
+        .anim-buttons button {
+            padding: 0;
+            width: 36px;
+        }
+        .anim-state label {
+            margin-right: 8px;
+        }
+        .anim-state input {
+            margin: 0;
+            vertical-align: middle;
+        }
+        .audio-cell {
+        /* Center audio widgets in the table cell. */
+        text-align: center;
+        padding-bottom: 1px;
+        padding-top: 1px;
+        }
+        .audio-cell-padded {
+        text-align: center;
+        padding-bottom: 10px;
+        padding-top: 10px;
+        }
+        .audio-header {
+        /* Don't wrap header text. */
+        white-space: nowrap;
+        /* Some breaking space between headers for readability. */
+        padding-right: 5px;
+        padding-left: 5px;
+        }
+        .reference-cell {
+        /* For uniformity and to wrap long reference text, limit the reference cell's width. */
+        width: 25%;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        }
+        .sample audio {
+        vertical-align: middle;
+        padding-left: 3px;
+        padding-right: 3px;
+        }
+        .round-button {
+        box-sizing: border-box;
+        display:block;
+        width:30px;
+        height:30px;
+        padding-top: 8px;
+        padding-left: 3px;
+        line-height: 6px;
+        border: 1.2px solid #000;
+        border-radius: 50%;
+        color: #000;
+        text-align:center;
+        background-color: rgba(0,0,0,0.00);
+        font-size:6px;
+        box-shadow: 0px 0px 2px rgba(0,0,0,1);
+        transition: all 0.2s ease;
+        }
+        .round-button:hover {
+        background-color: rgba(0,0,0,0.0);
+        box-shadow: 0px 0px 4px rgba(0,0,0,1);
+        }
+        .round-button:active {
+        background-color: rgba(0,0,0,0.01);
+        box-shadow: 0px 0px 1px rgba(0,0,0,1);
+        }
+      </style>
+   </head>
+
+ <body>
+     <div class="main">
+       <article>
+         <header>
+            <font size="+1"><h1 align="center">Rethinking Emotion Bias in Music via Frechet Audio Distance</h1></font>
+            <p style="line-height:100%", align="center"> Anonymous ICME submission</p>
+
+         </header>
+      </article>
+      </div>
+      
+      <div align="justify">
+         
+      <!-- Baselines -->
+      <h2>Baseline Models</h2>
+      <h3>EmoGen</h3>
+        
+        EmoGen uses four pre-extracted embeddings to represent emotions within the four quadrants. It encodes discrete values of these quadrants (e.g., 1 or 2) into embeddings as the emotion input, thus samples within a particular quadrant share the same emotional conditions (i.e., the emotion embeddings for all samples in each quadrant are identical, regardless of their original labels). As a result, while the generated music exhibits precise emotions, <b>we argue that it lacks variation, leading to a situation where all samples with the same emotion tend to sound emotionally similar</b>.
+
+      <h3>MidiEmo</h3>
+        
+        MidiEmo encodes continuous VA labels (e.g., [0.8, 0.8]) as latent embeddings using linear layers, which are then concatenated with music embeddings. <b>We argue that this approach can make music samples with boundary labels more susceptible to subjective bias (as the boundary emotions are usually difficult to distinguish).</b> The challenge of assigning boundary labels with high confidence often leads to ambiguity in the generated emotion. Consequently, while there is considerable variation, ambiguity is prevalent in the generated music, making it difficult to perceive precise emotions.
+
+
+      <!-- Method -->
+      <h2>Our Proposed Model</h2>
+
+      Our proposed model enhances emotion conditioning by combining the strengths of EmoGen and MIDIEmo, enabling a balance and trade-off between <b>prominence</b> and <b>variation</b> in the generated emotion.
+
+      <figure>
+        <p style="text-align:center"><img src="fig/models.png" alt="model" width=700px/></p>
+        <figcaption style="text-align:center">Fig 1. Our proposed model (above) and its comparison to baseline models in terms of emotion conditioning (below).</figcaption>
+      </figure>
+
+      <figure>
+        <p style="text-align:center"><img src="fig/4Q.png" alt="model" width=500px/></p>
+        <figcaption style="text-align:center">Fig 2. Russel's 4Q.</figcaption>
+      </figure> 
+
+
+      <!-- Music samples -->
+
+        <h2>Music Samples</h2>
+
+        The emotion conditions for <b>EmoGen</b> are discrete scores, i.e., [1, 2, 3, 4], denoting Russell's four quadrants. Therefore, VA values do not apply.<br>
+        The emotion conditions for <b>MidiEmo</b> and <b>our proposed model</b> are VA scores ranging from -1.0 to 1.0.<br>
+        <b>low VA</b> denotes both valence and arousal scores assigned from [-0.1, +0.1, -0.2, +0.2, -0.3, +0.3].<br>
+        <b>mid VA</b> denotes both valence and arousal scores assigned from [-0.4, +0.4, -0.5, +0.5, -0.6, +0.6, -0.7, +0.7].<br>
+        <b>high VA</b> denotes both valence and arousal scores assigned from [-0.8, +0.8, -0.9, +0.9, -1.0, +1.0].<br><br>
+        For example, low VA: [+0.1, +0.2]; mid VA: [+0.4, -0.4]; high VA: [-0.8, +0.9].<br><br>
+        <b>Boundary labels usually come from low VA and high VA, making their emotions sound like those of other quadrants. For example, music of emotions in Q3 sound like emotions in Q4. </b> <br><br>
+
+            <table align="center">
+                <tr>
+                    <td style="text-align:center"><b>Q1</b></td>
+                    <td style="text-align:center">EmoGen</td>
+                    <td style="text-align:center"></td>
+                    <td style="text-align:center">MidiEmo</td>
+                    <td style="text-align:center">Ours</td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 1
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q1/1.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        low VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q1/low.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q1/low.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 2
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q1/2.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        mid VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q1/mid.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q1/mid.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 3
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q1/3.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        high VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q1/high.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q1/high.mp3">
+                        </audio>
+                    </td>
+                </tr>
+
+                <tr style="height: 7px;"><!-- 这个 <tr> 用来制造空隙 -->
+                    <td colspan="2" style="border: none;"></td>
+                </tr>
+
+                <tr>
+                    <td style="text-align:center"><b>Q2</b></td>
+                    <td style="text-align:center">EmoGen</td>
+                    <td style="text-align:center"></td>
+                    <td style="text-align:center">MidiEmo</td>
+                    <td style="text-align:center">Ours</td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 1
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q2/1.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        low VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q2/low.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q2/low.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 2
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q2/2.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        mid VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q2/mid.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q2/mid.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 3
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q2/3.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        high VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q2/high.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q2/high.mp3">
+                        </audio>
+                    </td>
+                </tr>
+
+                <tr style="height: 7px;"><!-- 这个 <tr> 用来制造空隙 -->
+                    <td colspan="2" style="border: none;"></td>
+                </tr>
+
+                <tr>
+                    <td style="text-align:center"><b>Q3</b></td>
+                    <td style="text-align:center">EmoGen</td>
+                    <td style="text-align:center"></td>
+                    <td style="text-align:center">MidiEmo</td>
+                    <td style="text-align:center">Ours</td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 1
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q3/1.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        low VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q3/low.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q3/low.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 2
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q3/2.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        mid VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q3/mid.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q3/mid.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 3
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q3/3.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        high VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q3/high.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q3/high.mp3">
+                        </audio>
+                    </td>
+                </tr>
+
+                <tr style="height: 7px;"><!-- 这个 <tr> 用来制造空隙 -->
+                    <td colspan="2" style="border: none;"></td>
+                </tr>
+
+                <tr>
+                    <td style="text-align:center"><b>Q4</b></td>
+                    <td style="text-align:center">EmoGen</td>
+                    <td style="text-align:center"></td>
+                    <td style="text-align:center">MidiEmo</td>
+                    <td style="text-align:center">Ours</td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 1
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q4/1.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        low VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q4/low.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q4/low.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 2
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q4/2.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        mid VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q4/mid.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q4/mid.mp3">
+                        </audio>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:left">
+                        sample 3
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/EmoGen/Q4/3.mp3">
+                        </audio>
+                    </td>
+                    <td style="text-align:left">
+                        high VA
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/MidiEmo/Q4/high.mp3">
+                        </audio>
+                    </td>
+                    <td>
+                        <audio controls>
+                        <source src="mp3/Ours/Q4/high.mp3">
+                        </audio>
+                    </td>
+                </tr>
+
+      The music samples generated by EmoGen is piano-only. However, this does not impact the FAD scores (the high FAD scores of EmoGen do not arise from this) because the instruments in the two compared emotional music sets are aligned, eliminating the impact of instrumentation. This is verified by the FAD scores of EMOPIA (real music), which is also piano-only.
+      <figure>
+        <p style="text-align:center"><img src="fig/comparison.png" alt="result" width=500px/></p>
+      </figure>
+
+    </div>
+
+
+</body>
+</html>
