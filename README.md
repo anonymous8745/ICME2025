@@ -2,4 +2,4 @@
 
 Music samples for ICME 2025 submission
 
-**Assessing Music Emotion and Reducing Emotion Bias with Frechet Audio Distance**
+**Addressing Emotion Bias in Music Emotion Recognition and Generation with Frechet Audio Distance**
